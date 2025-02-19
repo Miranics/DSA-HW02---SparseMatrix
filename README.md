@@ -3,6 +3,7 @@
 
 Author: Nanen Miracle  
 Last Updated: 2025-02-19 14:45:47 UTC
+![alt text](image.png)
 
 ## Overview
 This project implements memory-efficient sparse matrix operations in Python. It uses a Dictionary of Keys (DOK) format to store only non-zero elements, making it suitable for large sparse matrices.
