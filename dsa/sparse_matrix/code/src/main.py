@@ -1,7 +1,7 @@
 """
 Main program for Sparse Matrix operations.
 Author: Miranics
-Date: 2025-02-19 10:29:38
+Date: 2025-02-19 10:44:59
 """
 
 from sparse_matrix import SparseMatrix
@@ -108,32 +108,77 @@ def display_matrix_statistics(matrix: SparseMatrix) -> None:
 
 def perform_operation(operation: str) -> Optional[SparseMatrix]:
     """
-    Perform matrix operation based on given operation type.
+    Perform the specified matrix operation.
     
     Args:
-        operation (str): Type of operation to perform
+        operation (str): Name of operation to perform
         
     Returns:
         Optional[SparseMatrix]: Result matrix or None if operation failed
     """
-    matrix1 = load_matrix("Enter path for first matrix: ")
+    # Load first matrix
+    matrix1 = load_matrix("Enter path to first matrix file: ")
     if matrix1 is None:
         return None
         
-    matrix2 = load_matrix("Enter path for second matrix: ")
+    # Load second matrix
+    matrix2 = load_matrix("Enter path to second matrix file: ")
     if matrix2 is None:
         return None
         
     try:
-        if operation == "add":
-            return matrix1 + matrix2
-        elif operation == "subtract":
-            return matrix1 - matrix2
-        elif operation == "multiply":
-            return matrix1 * matrix2
-        else:
-            print(f"Unsupported operation: {operation}")
-            return None
+        # Perform requested operation
+        if operation == "addition":
+            return matrix1.add(matrix2)
+        elif operation == "subtraction":
+            return matrix1.subtract(matrix2)
+        elif operation == "multiplication":
+            return matrix1.multiply(matrix2)
     except ValueError as e:
-        print(f"Error performing operation: {str(e)}")
-        return None
+        print(f"Error performing {operation}: {str(e)}")
+    except Exception as e:
+        print(f"Unexpected error during {operation}: {str(e)}")
+    
+    return None
+
+def main() -> None:
+    """Main program loop."""
+    while True:
+        try:
+            print_menu()
+            choice = input().strip()
+            
+            if choice == '1':
+                result = perform_operation("addition")
+                if result:
+                    save_result(result, "addition")
+                    
+            elif choice == '2':
+                result = perform_operation("subtraction")
+                if result:
+                    save_result(result, "subtraction")
+                    
+            elif choice == '3':
+                result = perform_operation("multiplication")
+                if result:
+                    save_result(result, "multiplication")
+                    
+            elif choice == '4':
+                matrix = load_matrix("Enter path to matrix file: ")
+                if matrix:
+                    display_matrix_statistics(matrix)
+                    
+            elif choice == '5':
+                print("Goodbye!")
+                break
+                
+            else:
+                print("Invalid choice! Please try again.")
+                
+        except KeyboardInterrupt:
+            print("\nOperation cancelled by user.")
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+
+if __name__ == "__main__":
+    main()
