@@ -1,8 +1,10 @@
 """
 Sparse Matrix Implementation using Dictionary of Keys (DOK) format.
 Author: Miranics
-Date: 2025-02-19 10:29:38
-Description: A memory-efficient implementation of sparse matrices that only stores non-zero elements.
+Date: 2025-02-19 11:08:23
+
+This module implements a sparse matrix class that efficiently stores
+only non-zero elements using a dictionary-based storage format.
 """
 
 from typing import Dict, Tuple, List, Union
@@ -10,12 +12,12 @@ import os
 
 class SparseMatrix:
     """
-    A memory-efficient implementation of a sparse matrix using dictionary of keys (DOK) format.
+    A memory-efficient implementation of sparse matrices using dictionary of keys (DOK) format.
     
     This implementation stores only non-zero elements in a dictionary where the key is a tuple
-    of (row, col) and the value is the non-zero element. This approach is memory efficient
-    for matrices with many zero elements.
-
+    of (row, col) and the value is the non-zero element. This makes it memory efficient for
+    matrices with many zero elements.
+    
     Attributes:
         rows (int): Number of rows in the matrix
         cols (int): Number of columns in the matrix
@@ -43,17 +45,39 @@ class SparseMatrix:
                 raise ValueError("Matrix dimensions cannot be negative")
             self.rows = num_rows
             self.cols = num_cols
+            
+    def _process_header(self, rows_line: str, cols_line: str) -> Tuple[int, int]:
+        """
+        Process and validate the header lines of the matrix file.
+        
+        Args:
+            rows_line (str): Line containing row information
+            cols_line (str): Line containing column information
+            
+        Returns:
+            Tuple[int, int]: Number of rows and columns
+            
+        Raises:
+            ValueError: If header format is invalid
+        """
+        if not rows_line.startswith('rows=') or not cols_line.startswith('cols='):
+            raise ValueError("Input file has wrong format: Missing rows/cols headers")
+            
+        try:
+            rows = int(rows_line[5:])
+            cols = int(cols_line[5:])
+            
+            if rows <= 0 or cols <= 0:
+                raise ValueError(f"Invalid dimensions: {rows}x{cols} (must be positive)")
+                
+            return rows, cols
+            
+        except ValueError:
+            raise ValueError("Invalid number format in headers")
 
     def _load_from_file(self, file_path: str) -> None:
         """
         Load matrix data from a file.
-        
-        The file format should be:
-        rows=<number>
-        cols=<number>
-        (row, col, value)
-        (row, col, value)
-        ...
         
         Args:
             file_path (str): Path to the input file
@@ -64,45 +88,69 @@ class SparseMatrix:
         """
         try:
             with open(file_path, 'r') as file:
-                # Read and validate dimensions
+                # Read headers
                 rows_line = file.readline().strip()
+                if not rows_line:
+                    raise ValueError("File is empty")
+                    
                 cols_line = file.readline().strip()
+                if not cols_line:
+                    raise ValueError("Missing columns specification")
                 
-                if not rows_line.startswith('rows=') or not cols_line.startswith('cols='):
-                    raise ValueError("Input file has wrong format: Missing rows/cols headers")
-                
-                try:
-                    self.rows = int(rows_line[5:])
-                    self.cols = int(cols_line[5:])
-                    if self.rows < 0 or self.cols < 0:
-                        raise ValueError("Matrix dimensions cannot be negative")
-                except ValueError:
-                    raise ValueError("Invalid dimensions in input file")
+                # Process headers
+                self.rows, self.cols = self._process_header(rows_line, cols_line)
                 
                 # Read matrix elements
-                for line_num, line in enumerate(file, 3):  # Start counting from line 3
+                line_num = 2  # Start counting from line 3 (0-based index + 2 header lines)
+                elements_loaded = 0
+                invalid_elements = 0
+                
+                for line in file:
+                    line_num += 1
                     line = line.strip()
                     if not line:  # Skip empty lines
                         continue
                     
+                    # Validate format
                     if not (line.startswith('(') and line.endswith(')')):
-                        raise ValueError(f"Invalid element format at line {line_num}: {line}")
+                        raise ValueError(
+                            f"Invalid element format at line {line_num}: {line}\n"
+                            f"Expected format: (row, col, value)"
+                        )
                     
                     try:
                         # Parse (row, col, value)
                         content = line[1:-1].replace(' ', '')  # Remove parentheses and spaces
-                        row, col, value = map(int, content.split(','))
+                        parts = content.split(',')
                         
-                        # Validate indices
-                        if not (0 <= row < self.rows and 0 <= col < self.cols):
+                        if len(parts) != 3:
                             raise ValueError(
-                                f"Invalid indices at line {line_num}: ({row}, {col})"
-                                f" - Must be within bounds [0,{self.rows-1}] x [0,{self.cols-1}]"
+                                f"Invalid element format at line {line_num}: {line}\n"
+                                f"Expected three comma-separated values: (row, col, value)"
                             )
+                            
+                        row, col, value = map(int, parts)
                         
+                        # Skip elements that are out of bounds but warn user
+                        if not (0 <= row < self.rows and 0 <= col < self.cols):
+                            print(f"Warning: Skipping out-of-bounds element at line {line_num}: {line}")
+                            invalid_elements += 1
+                            continue
+                            
                         self.set_element(row, col, value)
+                        elements_loaded += 1
+                            
                     except ValueError as e:
-                        raise ValueError(f"Invalid number format at line {line_num}: {line}")
+                        if str(e).startswith("Invalid element format"):
+                            raise
+                        raise ValueError(
+                            f"Invalid number format at line {line_num}: {line}\n"
+                            f"All values must be integers"
+                        )
+                
+                print(f"Successfully loaded {elements_loaded} elements")
+                if invalid_elements > 0:
+                    print(f"Skipped {invalid_elements} invalid elements")
                         
         except FileNotFoundError:
             raise FileNotFoundError(f"Could not open file: {file_path}")
@@ -293,6 +341,9 @@ class SparseMatrix:
                 sorted_elements = sorted(self.elements.items())
                 for (row, col), value in sorted_elements:
                     file.write(f"({row}, {col}, {value})\n")
+                    
+            print(f"Saved {len(self.elements)} elements to {file_path}")
+            
         except IOError as e:
             raise IOError(f"Error writing to file {file_path}: {str(e)}")
 
@@ -334,3 +385,29 @@ class SparseMatrix:
             "max_value": max(values),
             "total_elements": self.rows * self.cols
         }
+
+    def __str__(self) -> str:
+        """
+        Get string representation of the matrix.
+        
+        Returns:
+            str: String representation showing dimensions and number of non-zero elements
+        """
+        stats = self.get_statistics()
+        return (
+            f"SparseMatrix({self.rows}x{self.cols}) with "
+            f"{len(self.elements)} non-zero elements "
+            f"(density: {stats['density']:.2%})"
+        )
+
+    def __repr__(self) -> str:
+        """
+        Get detailed string representation of the matrix.
+        
+        Returns:
+            str: Detailed string representation including dimensions and elements
+        """
+        return (
+            f"SparseMatrix(rows={self.rows}, cols={self.cols}, "
+            f"elements={dict(sorted(self.elements.items()))})"
+        )

@@ -1,7 +1,7 @@
 """
 Main program for Sparse Matrix operations.
 Author: Miranics
-Date: 2025-02-19 10:44:59
+Date: 2025-02-19 11:03:20
 """
 
 from sparse_matrix import SparseMatrix
@@ -35,9 +35,16 @@ def get_valid_filepath(prompt: str) -> str:
     while True:
         try:
             file_path = input(prompt).strip()
+            if not file_path:
+                print("Error: Please enter a file path.")
+                continue
+                
             if os.path.isfile(file_path):
                 return file_path
+                
             print(f"Error: File '{file_path}' does not exist.")
+            print("Please enter a valid file path (e.g., ../../sample_inputs/matrix1.txt)")
+            
         except KeyboardInterrupt:
             raise
         except Exception as e:
@@ -55,13 +62,22 @@ def load_matrix(prompt: str) -> Optional[SparseMatrix]:
     """
     try:
         file_path = get_valid_filepath(prompt)
-        return SparseMatrix(file_path)
+        matrix = SparseMatrix(file_path)
+        print(f"Successfully loaded matrix: {matrix}")
+        return matrix
+        
     except (ValueError, FileNotFoundError) as e:
         print(f"Error loading matrix: {str(e)}")
+        print("Please check that the file exists and has the correct format:")
+        print("rows=<number>")
+        print("cols=<number>")
+        print("(row, col, value)")
         return None
+        
     except KeyboardInterrupt:
         print("\nOperation cancelled by user.")
         return None
+        
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
         return None
@@ -81,10 +97,14 @@ def save_result(matrix: SparseMatrix, operation: str) -> bool:
         output_path = f"result_{operation}.txt"
         matrix.save_to_file(output_path)
         print(f"Result saved to {output_path}")
+        print(f"Matrix statistics:")
+        display_matrix_statistics(matrix)
         return True
+        
     except IOError as e:
         print(f"Error saving result: {str(e)}")
         return False
+        
     except Exception as e:
         print(f"Unexpected error while saving: {str(e)}")
         return False
@@ -117,23 +137,51 @@ def perform_operation(operation: str) -> Optional[SparseMatrix]:
         Optional[SparseMatrix]: Result matrix or None if operation failed
     """
     # Load first matrix
+    print("\nLoading first matrix:")
     matrix1 = load_matrix("Enter path to first matrix file: ")
     if matrix1 is None:
         return None
         
     # Load second matrix
+    print("\nLoading second matrix:")
     matrix2 = load_matrix("Enter path to second matrix file: ")
     if matrix2 is None:
         return None
         
     try:
+        # Show matrix dimensions before operation
+        print(f"\nOperation: {operation}")
+        print(f"Matrix 1: {matrix1.rows}x{matrix1.cols}")
+        print(f"Matrix 2: {matrix2.rows}x{matrix2.cols}")
+        
         # Perform requested operation
         if operation == "addition":
+            if matrix1.rows != matrix2.rows or matrix1.cols != matrix2.cols:
+                print(f"Error: Matrices cannot be added because their dimensions don't match.")
+                print(f"Matrix 1 is {matrix1.rows}x{matrix1.cols}")
+                print(f"Matrix 2 is {matrix2.rows}x{matrix2.cols}")
+                print("Both matrices must have the same dimensions for addition.")
+                return None
             return matrix1.add(matrix2)
+            
         elif operation == "subtraction":
+            if matrix1.rows != matrix2.rows or matrix1.cols != matrix2.cols:
+                print(f"Error: Matrices cannot be subtracted because their dimensions don't match.")
+                print(f"Matrix 1 is {matrix1.rows}x{matrix1.cols}")
+                print(f"Matrix 2 is {matrix2.rows}x{matrix2.cols}")
+                print("Both matrices must have the same dimensions for subtraction.")
+                return None
             return matrix1.subtract(matrix2)
+            
         elif operation == "multiplication":
+            if matrix1.cols != matrix2.rows:
+                print(f"Error: Matrices cannot be multiplied because dimensions are incompatible.")
+                print(f"Matrix 1 is {matrix1.rows}x{matrix1.cols}")
+                print(f"Matrix 2 is {matrix2.rows}x{matrix2.cols}")
+                print("The number of columns in Matrix 1 must equal the number of rows in Matrix 2.")
+                return None
             return matrix1.multiply(matrix2)
+            
     except ValueError as e:
         print(f"Error performing {operation}: {str(e)}")
     except Exception as e:
@@ -143,6 +191,10 @@ def perform_operation(operation: str) -> Optional[SparseMatrix]:
 
 def main() -> None:
     """Main program loop."""
+    print("Sparse Matrix Calculator")
+    print("Author: Miranics")
+    print("Date: 2025-02-19 11:03:20")
+    
     while True:
         try:
             print_menu()
@@ -169,14 +221,15 @@ def main() -> None:
                     display_matrix_statistics(matrix)
                     
             elif choice == '5':
-                print("Goodbye!")
+                print("Thank you for using Sparse Matrix Calculator!")
                 break
                 
             else:
-                print("Invalid choice! Please try again.")
+                print("Invalid choice! Please enter a number between 1 and 5.")
                 
         except KeyboardInterrupt:
             print("\nOperation cancelled by user.")
+            break
         except Exception as e:
             print(f"Unexpected error: {str(e)}")
 
