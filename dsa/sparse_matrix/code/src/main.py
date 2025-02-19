@@ -4,7 +4,7 @@ Sparse Matrix Calculator
 A program to perform operations on sparse matrices.
 
 Author: Nanen Miracle Mbanaade
-Created: 2025-02-19 13:11:24
+Last update: 2025-02-19 13:11
 """
 
 from sparse_matrix import SparseMatrix
