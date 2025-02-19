@@ -1,13 +1,20 @@
 """
-Main program for Sparse Matrix operations.
+Sparse Matrix Calculator
 Author: Miranics
-Date: 2025-02-19 11:03:20
+Date: 2025-02-19 12:19:22
 """
 
 from sparse_matrix import SparseMatrix
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import os
 import sys
+
+# Store the sample files for quick access
+SAMPLE_FILES = {
+    '1': "../../sample_inputs/matrix1.txt",
+    '2': "../../sample_inputs/matrix2.txt",
+    '3': "../../sample_inputs/matrix3.txt"
+}
 
 def print_menu() -> None:
     """Display menu options."""
@@ -19,9 +26,17 @@ def print_menu() -> None:
     print("5. Exit")
     print("Enter your choice: ", end="")
 
+def print_file_selection() -> None:
+    """Display available matrix files."""
+    print("\nAvailable matrix files:")
+    for key, path in SAMPLE_FILES.items():
+        print(f"{key}. {path}")
+    print("Or enter full path for a different file")
+    print("Your choice: ", end="")
+
 def get_valid_filepath(prompt: str) -> str:
     """
-    Get a valid file path from user input.
+    Get a valid file path from user input with quick selection options.
     
     Args:
         prompt (str): Message to display to user
@@ -34,16 +49,24 @@ def get_valid_filepath(prompt: str) -> str:
     """
     while True:
         try:
-            file_path = input(prompt).strip()
+            print(prompt)
+            print_file_selection()
+            user_input = input().strip()
+            
+            # Check if user selected a sample file
+            if user_input in SAMPLE_FILES:
+                file_path = SAMPLE_FILES[user_input]
+            else:
+                file_path = user_input
+
             if not file_path:
-                print("Error: Please enter a file path.")
+                print("Error: Please enter a file path or number.")
                 continue
                 
             if os.path.isfile(file_path):
                 return file_path
                 
             print(f"Error: File '{file_path}' does not exist.")
-            print("Please enter a valid file path (e.g., ../../sample_inputs/matrix1.txt)")
             
         except KeyboardInterrupt:
             raise
@@ -138,13 +161,13 @@ def perform_operation(operation: str) -> Optional[SparseMatrix]:
     """
     # Load first matrix
     print("\nLoading first matrix:")
-    matrix1 = load_matrix("Enter path to first matrix file: ")
+    matrix1 = load_matrix("Select the first matrix file:")
     if matrix1 is None:
         return None
         
     # Load second matrix
     print("\nLoading second matrix:")
-    matrix2 = load_matrix("Enter path to second matrix file: ")
+    matrix2 = load_matrix("Select the second matrix file:")
     if matrix2 is None:
         return None
         
@@ -193,7 +216,7 @@ def main() -> None:
     """Main program loop."""
     print("Sparse Matrix Calculator")
     print("Author: Miranics")
-    print("Date: 2025-02-19 11:03:20")
+    print("Date: 2025-02-19 12:19:22")
     
     while True:
         try:
@@ -216,7 +239,7 @@ def main() -> None:
                     save_result(result, "multiplication")
                     
             elif choice == '4':
-                matrix = load_matrix("Enter path to matrix file: ")
+                matrix = load_matrix("Select matrix file for statistics:")
                 if matrix:
                     display_matrix_statistics(matrix)
                     
