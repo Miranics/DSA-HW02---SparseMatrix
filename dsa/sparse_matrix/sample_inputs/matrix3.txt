@@ -1,4 +1,3 @@
-easy_sample_01_2.txt
 rows=8433
 cols=3180
 (0, 436, -862)
