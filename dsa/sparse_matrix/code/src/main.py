@@ -17,7 +17,10 @@ from datetime import datetime
 SAMPLE_FILES = [
     "../../sample_inputs/matrix1.txt",
     "../../sample_inputs/matrix2.txt",
-    "../../sample_inputs/matrix3.txt"
+    "../../sample_inputs/matrix3.txt",
+    "../../sample_inputs/matrix4.txt",
+    "../../sample_inputs/matrix5.txt",
+    "../../sample_inputs/matrix6.txt"
 ]
 
 # Where I save my results 💾
