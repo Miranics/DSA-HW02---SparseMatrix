@@ -51,7 +51,7 @@ def list_sample_files() -> None:
     for i, file_path in enumerate(SAMPLE_FILES, 1):
         status = "✅" if os.path.exists(file_path) else "❌"
         print(f"{i}. {status} {file_path}")
-    print("\n💡 Tip: Enter 1-3 for sample files or type a full path")
+    print("\n💡 Tip: Enter 1-6 for sample files or type a full path")
 
 def get_file_choice(prompt: str) -> str:
     """
